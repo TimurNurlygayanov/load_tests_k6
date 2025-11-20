@@ -18,13 +18,15 @@ Comprehensive test suite covering load, stress, and performance scenarios.
 
 | Document | Description |
 |----------|-------------|
-| [SETUP.md](SETUP.md) | Setup, configuration, and how to run tests |
-| [API.md](API.md) | API endpoints reference |
-| [LOAD_TESTS.md](LOAD_TESTS.md) | Load testing documentation |
-| [STRESS_TESTS.md](STRESS_TESTS.md) | Stress testing documentation |
-| [PERFORMANCE_TESTS.md](PERFORMANCE_TESTS.md) | Performance testing documentation |
-| [REPORTING.md](REPORTING.md) | Reports and system metrics collection |
-| [DOCKER.md](DOCKER.md) | Distributed testing with Docker & Grafana |
+| [SETUP.md](docs/SETUP.md) | Setup, configuration, and how to run tests |
+| [API.md](docs/API.md) | API endpoints reference |
+| [LOAD_TESTS.md](docs/LOAD_TESTS.md) | Load testing documentation |
+| [STRESS_TESTS.md](docs/STRESS_TESTS.md) | Stress testing documentation |
+| [PERFORMANCE_TESTS.md](docs/PERFORMANCE_TESTS.md) | Performance testing documentation |
+| [REPORTING.md](docs/REPORTING.md) | Reports and system metrics collection |
+| [DOCKER.md](docs/DOCKER.md) | Distributed testing with Docker & Grafana |
+| [TEST_VARIANTS_GUIDE.md](docs/TEST_VARIANTS_GUIDE.md) | VU-based vs RPS-based test scenarios |
+| [VU_SCALING_GUIDE.md](docs/VU_SCALING_GUIDE.md) | Understanding VUs and scaling |
 
 ## Quick Start
 
@@ -39,7 +41,8 @@ npm run build
 npm run test:k6:build
 
 # 2. Run distributed load test (deploys API + 4 workers + Grafana + InfluxDB)
-./run-distributed-test.sh trading-scenario
+./run-distributed-test.sh trading-scenario 10      # VU-based
+./run-distributed-test.sh trading-scenario-rps 10  # RPS-based
 
 # 3. View real-time metrics in Grafana
 open http://localhost:3001/d/k6-load-testing
@@ -57,7 +60,7 @@ open http://localhost:3001/d/k6-load-testing
 
 **Services:**
 - **API Server:** http://localhost:3000
-- **Grafana Dashboard:** http://localhost:3001
+- **Grafana Dashboard:** http://localhost:3001/d/k6-load-testing/k6-load-testing-dashboard 
 - **InfluxDB:** http://localhost:8086
 
 **Run different tests:**
@@ -80,7 +83,7 @@ open http://localhost:3001/d/k6-load-testing
 docker-compose down -v --remove-orphans
 ```
 
-See [DOCKER.md](DOCKER.md) for detailed distributed testing documentation.
+See [DOCKER.md](docs/DOCKER.md) for detailed distributed testing documentation.
 
 ---
 
@@ -108,7 +111,7 @@ npm run dev
 open reports/*/report.html
 ```
 
-See [SETUP.md](SETUP.md) for detailed local setup instructions.
+See [SETUP.md](docs/SETUP.md) for detailed local setup instructions.
 
 ## Tech Stack
 
@@ -122,8 +125,10 @@ See [SETUP.md](SETUP.md) for detailed local setup instructions.
 k6_tests/
 ├── src/              # API server source code
 ├── k6/tests/         # k6 load tests
-├── *.md              # Documentation
-└── *.sh              # Helper scripts
+├── scripts/          # Helper scripts
+├── docs/             # Documentation
+├── grafana/          # Grafana dashboards
+└── reports/          # Test reports
 ```
 
 ## License

@@ -1,7 +1,8 @@
 "use strict";
 /**
- * k6 Load Test: Trading Scenario
- * Simulates a complete trading flow: Create User -> Place Order -> Check Position
+ * k6 Load Test: Trading Scenario (RPS-based)
+ * Simulates a complete trading flow with controlled RPS (requests per second)
+ * This version uses ramping-arrival-rate executor for precise RPS control
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -17,18 +18,20 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 const errorRate = new metrics_1.Rate('errors');
 const usersCreated = new metrics_1.Counter('users_created');
 const NUM_WORKERS = parseInt(__ENV.NUM_WORKERS || '1');
-const VUS_PER_WORKER = 1000 / NUM_WORKERS; // Total 1000 VUs across all workers
+const TARGET_RPS = 1000 / NUM_WORKERS; // Total 1000 RPS across all workers
 exports.options = {
     scenarios: {
-        gradual_ramp: {
-            executor: 'ramping-vus',
-            startVUs: 0,
+        rps_controlled: {
+            executor: 'ramping-arrival-rate',
+            startRate: 0,
+            timeUnit: '1s',
+            preAllocatedVUs: 200,
+            maxVUs: 2000,
             stages: [
-                { duration: '2m', target: VUS_PER_WORKER }, // Ramp up to target VUs over 2 minutes
-                { duration: '5m', target: VUS_PER_WORKER }, // Hold at target VUs for 5 minutes
+                { duration: '2m', target: TARGET_RPS }, // Ramp up to target RPS over 2 minutes
+                { duration: '15m', target: TARGET_RPS }, // Hold at target RPS for 15 minutes
                 { duration: '1m', target: 0 }, // Ramp down over 1 minute
             ],
-            gracefulRampDown: '30s',
         },
     },
     thresholds: {
@@ -39,7 +42,6 @@ exports.options = {
 };
 const SYMBOLS = ['BTCUSD', 'ETHUSD', 'AAPL', 'GOOGL', 'TSLA'];
 function default_1() {
-    const iterationStart = Date.now();
     // 1. Create User
     const userPayload = JSON.stringify({
         initialBalance: 50000,
@@ -55,9 +57,6 @@ function default_1() {
     });
     if (!userSuccess) {
         errorRate.add(1);
-        const elapsed = (Date.now() - iterationStart) / 1000;
-        const sleepTime = Math.max(0, 1 - elapsed);
-        (0, k6_1.sleep)(sleepTime);
         return;
     }
     const userId = JSON.parse(userRes.body).data.id;
@@ -77,9 +76,6 @@ function default_1() {
     });
     if (!orderSuccess) {
         errorRate.add(1);
-        const elapsed = (Date.now() - iterationStart) / 1000;
-        const sleepTime = Math.max(0, 1 - elapsed);
-        (0, k6_1.sleep)(sleepTime);
         return;
     }
     // 3. Check Position
@@ -92,8 +88,5 @@ function default_1() {
         }
     });
     errorRate.add(!positionSuccess);
-    // Calculate sleep time to ensure exactly 1 second per iteration
-    const elapsed = (Date.now() - iterationStart) / 1000;
-    const sleepTime = Math.max(0, 1 - elapsed);
-    (0, k6_1.sleep)(sleepTime);
+    // No sleep needed - k6 controls the rate automatically
 }

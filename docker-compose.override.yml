@@ -1,12 +1,12 @@
 services:
   k6-worker:
     environment:
-      - NUM_WORKERS=2
+      - NUM_WORKERS=10
     volumes:
       - ./reports:/scripts/reports
     command: >
       run
       --out influxdb=http://influxdb:8086/k6
-      --summary-export=/scripts/reports/trading-scenario-20251120-122945/summary.json
+      --summary-export=/scripts/reports/trading-scenario-20251120-141621/summary.json
       --tag test=trading-scenario
       /scripts/trading-scenario.test.js
