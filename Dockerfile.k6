@@ -1,0 +1,13 @@
+FROM grafana/k6:latest
+
+WORKDIR /scripts
+
+# Copy k6 tests
+COPY k6/dist/*.js ./
+
+# Copy helper scripts
+COPY scripts/*.sh /scripts/
+
+# Default: Show helpful usage instructions
+CMD ["sh", "-c", "echo '\n📊 k6 Load Testing Container\n\nUsage:\n  docker run k6-image run /scripts/TEST_NAME.test.js\n\nAvailable tests:\n  - user-creation.test.js\n  - market-data.test.js\n  - order-placement.test.js\n  - trading-scenario.test.js\n  - user-profiles.test.js\n  - price-spike-stress.test.js\n  - perf-market-latest.test.js\n  - perf-order-market.test.js\n  - perf-user-positions.test.js\n  - extreme-market-latest.test.js\n  - extreme-order-market.test.js\n  - extreme-user-positions.test.js\n\nWith docker-compose:\n  ./run-distributed-test.sh TEST_NAME\n\nView results:\n  Grafana: http://localhost:3001\n'"]
+
